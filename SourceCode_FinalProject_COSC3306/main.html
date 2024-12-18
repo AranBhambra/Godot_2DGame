@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D House</title>
+    <style>
+        body { margin: 0; }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+    
+    <script type="module">
+
+        // Aran Bhambra - 219698180
+        
+        // Import Three.js, OBJLoader, and OrbitControls
+        import * as THREE from 'https://unpkg.com/three@0.124.0/build/three.module.js';
+        import { OrbitControls } from 'https://unpkg.com/three@0.124.0/examples/jsm/controls/OrbitControls.js';
+        import { OBJLoader } from 'https://unpkg.com/three@0.124.0/examples/jsm/loaders/OBJLoader.js';
+        import { PointerLockControls } from 'https://unpkg.com/three@0.124.0/examples/jsm/controls/PointerLockControls';
+        
+        // Three.js scene
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // Set background color
+        renderer.setClearColor(0x87ceeb); // Sky blue
+
+        // Set up lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+
+
+        // Load external models
+        const loader = new OBJLoader();
+        
+        // Load table
+        loader.load(
+            'CoffeeTableCentralWood.obj',
+            function (object) {
+                object.traverse(function (child) {
+                        child.scale.set(0.05, 0.05, 0.05); // Scale down
+                        child.position.set(15, 0.5, -15); // Adjust position
+                        scene.add(child);
+                });
+            }
+        );
+
+        // Add objects
+        const wallGeometry = new THREE.BoxGeometry(50, 20, 50);
+        const wallMaterial = new THREE.MeshStandardMaterial({ color: 0xdddddd, side: THREE.DoubleSide }); // both sides are visible
+        const walls = new THREE.Mesh(wallGeometry, wallMaterial);
+        walls.position.set(0, 9.7, 0);
+        scene.add(walls);
+
+        // Load door model
+        loader.load(
+            'door.obj',
+            function (door) {
+                door.scale.set(0.004, 0.004, 0.004); // Scale down
+                door.position.set(0, 0, 24.5); // Adjust position
+                door.rotation.x = 1.57
+                scene.add(door);
+            }
+        );
+
+        // Load window models
+        loader.load(
+            'window.obj',
+            function (window1) {
+                window1.scale.set(0.004, 0.004, 0.004); // Scale down
+                window1.position.set(25, 10, 0); // Adjust position
+                window1.rotation.y = 1.6;
+
+                // transparent window
+                const windowMaterial = new THREE.MeshStandardMaterial({ transparent: true, opacity: 0}); // Adjust opacity as needed
+                window1.material = windowMaterial;
+
+                scene.add(window1);
+            }
+        );
+
+        loader.load(
+            'window.obj',
+            function (window2) {
+                window2.scale.set(0.004, 0.004, 0.004); // Scale down
+                window2.position.set(-25, 10, 0); // Adjust position
+                window2.rotation.y = 1.6;
+
+                // transparent window
+                const windowMaterial = new THREE.MeshStandardMaterial({ transparent: true, opacity: 0 }); // Adjust opacity
+                window2.material = windowMaterial;
+
+                scene.add(window2);
+            }
+        );
+
+        loader.load(
+            'window.obj',
+            function (window3) {
+                window3.scale.set(0.004, 0.004, 0.004); // Scale down
+                window3.position.set(0, 10, -25); // Adjust position
+
+                // transparent window
+                const windowMaterial = new THREE.MeshStandardMaterial({ transparent: true, opacity: 0 }); // Adjust opacity
+                window3.material = windowMaterial;
+
+                scene.add(window3);
+            }
+        );
+
+        // Load first tree
+        loader.load(
+            'tree.obj',
+            function (tree1) {
+                tree1.traverse(function (child) {
+                    if (child.isMesh) {
+                        const greenMaterial = new THREE.MeshStandardMaterial({ color: 0x00ff00 }); // Green 
+                        child.material = greenMaterial;
+                        child.scale.set(1, 1, 1); // Scale down
+                        child.position.set(-32, -1, 32); // Adjust position
+                        scene.add(child);
+                    }
+                });
+            }
+        );
+
+        // Load second tree
+        loader.load(
+            'tree.obj',
+            function (tree2) {
+                tree2.traverse(function (child) {
+                    if (child.isMesh) {
+                        const greenMaterial = new THREE.MeshStandardMaterial({ color: 0x00ff00 }); // Green
+                        child.material = greenMaterial;
+                        child.scale.set(1, 1, 1); // Scale down
+                        child.position.set(30, -1, 30); // Adjust position
+                        scene.add(child);
+                    }
+                });
+            }
+        );
+
+
+        // Load chair
+        loader.load(
+            'Chair.obj',
+            function (chair) {
+                chair.traverse(function (child) {
+                    if (child.isMesh) {
+                        // Set material for the chair
+                        const chairMaterial = new THREE.MeshStandardMaterial({ color: 0xFF0000 }); 
+                        child.material = chairMaterial;
+                        child.scale.set(0.005, 0.005, 0.005); // Scale down
+                        child.position.set(5, 0, -2);
+                        scene.add(child);
+                    }
+                });
+            }
+        );
+
+        // Load chair
+        loader.load(
+            'Chair.obj',
+            function (chair) {
+                chair.traverse(function (child) {
+                    if (child.isMesh) {
+                        // Set material for the chair
+                        const chairMaterial = new THREE.MeshStandardMaterial({ color: 0x0000FF }); 
+                        child.material = chairMaterial;
+                        child.rotation.y = 1.2;
+                        child.scale.set(0.005, 0.005, 0.005); // Scale down
+                        child.position.set(22, 0, 0);
+                        scene.add(child);
+                    }
+                });
+            }
+        );
+
+
+        // Load vase model
+        loader.load(
+            'vase.obj',
+            function (vase) {
+                vase.traverse(function (child) {
+                    if (child.isMesh) {
+                        // material for the vase
+                        const vaseMaterial = new THREE.MeshStandardMaterial({ color: 0xFF0000 });
+                        child.material = vaseMaterial;
+                        child.scale.set(0.03, 0.03, 0.03); // Scale down
+                        child.position.set(10, 0, 10); // Adjust position
+                        scene.add(child);
+                    }
+                });
+            }
+        );
+
+
+
+
+        // Adding surface for the ground
+        const groundGeometry = new THREE.PlaneGeometry(100, 100);
+        const textureLoader1 = new THREE.TextureLoader();
+        const groundTexture = textureLoader1.load('rocksFloor.jpg'); // Load texture
+        const groundMaterial = new THREE.MeshStandardMaterial({ map: groundTexture });
+        const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+        ground.rotation.x = -Math.PI / 2; // Rotate to be flat
+        ground.position.set(0, -1, 0); // Adjust position
+        scene.add(ground);
+
+        // Adding POV-ray created surface for the floor
+        const floorGeometry = new THREE.PlaneGeometry(50, 50, 10, 10); // segments for pattern
+        const textureLoader = new THREE.TextureLoader();
+        const floorTexture = textureLoader.load('floorPOV.png'); // floor texture
+        const floorMaterial = new THREE.MeshStandardMaterial({ map: floorTexture });
+        
+        // Assigning textures based on face indices
+        floorGeometry.faces.forEach((face, index) => {
+            const isEven = Math.floor(index / 2) % 2 === 0;
+            face.materialIndex = isEven ? 0 : 1;
+        });
+
+        const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+        floor.rotation.x = -Math.PI / 2; // Rotate to be flat
+        scene.add(floor);
+
+        // Define textures
+        const texture1 = textureLoader.load('wall2pr.png'); // POV-ray texture for wall
+        const texture2 = textureLoader.load('texture2.jpg'); // roof texture
+
+        // Load roof texture
+        const roofTexture = textureLoader.load('texture2.jpg');
+
+        // Create roof geometry
+        const roofGeometry = new THREE.ConeGeometry(40, 7, 4);
+
+        // Create roof material with the texture
+        const roofMaterial = new THREE.MeshStandardMaterial({ map: roofTexture });
+
+        // Create roof mesh
+        const roof = new THREE.Mesh(roofGeometry, roofMaterial);
+        roof.position.set(0, 23.5, 0);
+        roof.rotation.y = 0.8;
+        scene.add(roof);
+
+        // Apply textures to objects
+        walls.material.map = texture1;
+
+        // Skydome with cloud texture
+        const domeGeometry = new THREE.SphereGeometry(500, 32, 32);
+        const cloudTexture = textureLoader.load('clouds.jpg');
+        const domeMaterial = new THREE.MeshStandardMaterial({ map: cloudTexture, side: THREE.BackSide });
+        const dome = new THREE.Mesh(domeGeometry, domeMaterial);
+        scene.add(dome);
+
+        // camera controls using mouse
+        const controlsM = new OrbitControls(camera, renderer.domElement);
+        camera.position.set(0, 2, 8);
+        controlsM.update();
+
+        // First-person controls using keyboard
+        const controls = new PointerLockControls(camera);
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                controls.lock();
+            }
+        }, false);
+        scene.add(controls.getObject());
+
+        // key navigation
+        document.addEventListener('keydown', (event) => {
+            switch (event.key) {
+                case 'ArrowUp':
+                case 'w':
+                    controls.moveForward(1);
+                    break;
+                case 'ArrowLeft':
+                case 'a':
+                    controls.moveRight(-1);
+                    break;
+                case 'ArrowDown':
+                case 's':
+                    controls.moveForward(-1);
+                    break;
+                case 'ArrowRight':
+                case 'd':
+                    controls.moveRight(1);
+                    break;
+            }
+        });
+
+
+
+        // Adding glass geometry
+        const glassGeometry = new THREE.BoxGeometry(10, 15, 0.1); // dimensions
+        const glassMaterial = new THREE.MeshPhongMaterial({ color: 0x87ceeb, transparent: true, opacity: 0.5 }); // 50% opacity
+        const glass = new THREE.Mesh(glassGeometry, glassMaterial);
+        glass.position.set(18, 8, 0); // Adjust position
+        scene.add(glass);
+
+        // Create cardboard geometry
+        const cardboardGeometry = new THREE.BoxGeometry(0.5, 2.5, 10); // dimensions
+        const cardboardMaterial = new THREE.MeshStandardMaterial({ color: 0xFFA500 }); // Orange
+        const cardboard = new THREE.Mesh(cardboardGeometry, cardboardMaterial);
+        cardboard.position.set(18, 1, 0); // Adjust position
+        cardboard.rotation.y = Math.PI / 2;
+        scene.add(cardboard);
+
+        
+        // Adding sunlight
+        const sunlight = new THREE.DirectionalLight(0xffe484, 0.5);
+        sunlight.position.set(0, 10, 0);
+        sunlight.castShadow = true; // Enable shadow casting for sunlight
+        scene.add(sunlight);
+
+        // Shadow properties for sunlight
+        sunlight.shadow.mapSize.width = 1024; // Shadow map width
+        sunlight.shadow.mapSize.height = 1024; // height
+        sunlight.shadow.camera.near = 0.5; // near shadow distance
+        sunlight.shadow.camera.far = 500; // far shadow distance
+
+        // Enable shadow receiving for objects
+        walls.receiveShadow = true;
+        roof.receiveShadow = true;
+        floor.receiveShadow = true;
+
+        // Enable shadow casting for objects
+        walls.castShadow = true;
+        roof.castShadow = true;
+
+        // renderer shadow map
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Soft shadow mapping
+
+
+        // lamp geometry, rod and cone
+        const rodGeometry = new THREE.CylinderGeometry(0.1, 0.1, 1, 16); 
+        const coneGeometry = new THREE.ConeGeometry(0.5, 1.5, 16); 
+        const lampGeometry = new THREE.Group(); // Group to hold rod and cone
+
+        // materials for rod and cone
+        const rodMaterial = new THREE.MeshBasicMaterial({ color: 0xFFFFFF }); 
+        const coneMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00, emissive: 0xffff00, emissiveIntensity: 5 });
+
+        // mesh for rod and cone
+        const rodMesh = new THREE.Mesh(rodGeometry, rodMaterial);
+        const coneMesh = new THREE.Mesh(coneGeometry, coneMaterial);
+
+        // Position rod and cone
+        rodMesh.position.set(-20, 0.5, -20); 
+        coneMesh.position.set(-20, 2, -20); 
+
+        // Scale
+        rodMesh.scale.set(1.5, 1.5, 1.5);
+        coneMesh.scale.set(1.5, 1.5, 1.5);
+
+        // Add rod and cone to lamp group
+        lampGeometry.add(rodMesh);
+        lampGeometry.add(coneMesh);
+
+        // Add lamp to scene
+        scene.add(lampGeometry);
+
+        // point light inside the lamp
+        const lampLight = new THREE.PointLight(0xffff00, 3, 20); // Yellow light, intensity 3, range 20
+        coneMesh.add(lampLight); // Attach light to cone
+        
+
+        // Render loop
+        function animate() {
+            requestAnimationFrame(animate);
+            renderer.render(scene, camera);
+        }
+
+        animate();
+    </script>
+</body>
+</html>
